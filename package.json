@@ -8,6 +8,6 @@
     "start": "node scrape.js"
   },
   "dependencies": {
-    "puppeteer": "^19.0.0"
+    "puppeteer": "^21.3.8"
   }
 }
