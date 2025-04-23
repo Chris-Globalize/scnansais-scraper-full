@@ -1,14 +1,14 @@
-
 name: Scrape and Upload Matchs
 
 on:
   schedule:
     - cron: '0 */6 * * *'  # Toutes les 6 heures
-  workflow_dispatch:
+  workflow_dispatch:       # Permet de le lancer manuellement
 
 jobs:
   scrape-and-upload:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -16,13 +16,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
-      - name: Install Puppeteer
-        run: npm install
+      - name: Install dependencies
+        run: npm install puppeteer
 
-      - name: Run scraper
-        run: node scrape.js
+      - name: Install Chrome and run scraper
+        run: |
+          npx puppeteer browsers install chrome
+          node scrape.js
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
       - name: Upload to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
