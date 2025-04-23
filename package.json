@@ -1,0 +1,13 @@
+
+{
+  "name": "scnansais-scraper",
+  "version": "1.0.0",
+  "description": "Scraper FFF for SC Nansais",
+  "main": "scrape.js",
+  "scripts": {
+    "start": "node scrape.js"
+  },
+  "dependencies": {
+    "puppeteer": "^19.0.0"
+  }
+}
