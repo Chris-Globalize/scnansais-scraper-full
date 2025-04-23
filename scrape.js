@@ -1,9 +1,8 @@
 const puppeteer = require('puppeteer');
-const fs = require('fs');
 
 (async () => {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
@@ -12,7 +11,6 @@ const fs = require('fs');
     waitUntil: 'networkidle2'
   });
 
-  // Attendre que les éléments s'affichent
   await page.waitForSelector('.fff-card__agenda-match');
 
   const matchs = await page.evaluate(() => {
@@ -20,6 +18,8 @@ const fs = require('fs');
     return Array.from(elements).map(el => el.innerText.trim());
   });
 
+  const fs = require('fs');
   fs.writeFileSync('matchs.json', JSON.stringify(matchs, null, 2));
+
   await browser.close();
 })();

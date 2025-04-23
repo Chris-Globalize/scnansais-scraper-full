@@ -2,7 +2,7 @@ name: Scrape and Upload Matchs
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Toutes les 6 heures
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -23,8 +23,6 @@ jobs:
 
       - name: Run scraper
         run: node scrape.js
-        env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: false
 
       - name: Upload to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
