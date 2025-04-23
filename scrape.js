@@ -1,19 +1,11 @@
 
-const puppeteer = require('puppeteer-core');
-const chrome = require('chrome-aws-lambda');
+const { chromium } = require('playwright');
 const fs = require('fs');
 
 (async () => {
-  const browser = await puppeteer.launch({
-    args: chrome.args,
-    executablePath: await chrome.executablePath,
-    headless: chrome.headless,
-  });
-
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
-  await page.goto('https://var.fff.fr/recherche-clubs?subtab=agenda&tab=resultats&scl=172132', {
-    waitUntil: 'networkidle2'
-  });
+  await page.goto('https://var.fff.fr/recherche-clubs?subtab=agenda&tab=resultats&scl=172132', { waitUntil: 'networkidle' });
 
   await page.waitForSelector('.fff-card__agenda-match');
 

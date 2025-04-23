@@ -1,5 +1,5 @@
 
-name: Scrape and Upload Matchs
+name: Scrape and Upload Matchs (Playwright)
 
 on:
   schedule:
@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Puppeteer core and chrome-aws-lambda
-        run: npm install
+      - name: Install Playwright
+        run: npm install && npx playwright install --with-deps
 
       - name: Run scraper
         run: node scrape.js

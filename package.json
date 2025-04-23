@@ -2,13 +2,12 @@
 {
   "name": "scnansais-scraper",
   "version": "1.0.0",
-  "description": "Scraper FFF for SC Nansais using puppeteer-core and chrome-aws-lambda",
+  "description": "Scraper FFF with Playwright for SC Nansais",
   "main": "scrape.js",
   "scripts": {
     "start": "node scrape.js"
   },
   "dependencies": {
-    "puppeteer-core": "^21.3.8",
-    "chrome-aws-lambda": "^10.1.0"
+    "playwright": "^1.41.0"
   }
 }
