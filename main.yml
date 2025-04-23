@@ -1,0 +1,38 @@
+
+name: Scrape and Upload Matchs (Playwright + SFTP)
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Playwright
+        run: npm install && npx playwright install --with-deps
+
+      - name: Run scraper
+        run: node scrape.js
+
+      - name: Upload to SFTP
+        uses: pressidium/lftp-mirror-action@v1
+        with:
+          host: ${{ secrets.FTP_SERVER }}
+          port: 22
+          user: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          localDir: './'
+          remoteDir: '/www/Scrap-fff/'
+          onlyNewer: true
+          options: '--only-newer --verbose'
