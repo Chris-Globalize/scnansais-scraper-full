@@ -1,4 +1,3 @@
-
 {
   "name": "scnansais-scraper",
   "version": "1.0.0",
@@ -8,6 +7,7 @@
     "start": "node scrape.js"
   },
   "dependencies": {
-    "puppeteer": "^21.3.8"
+    "puppeteer-core": "^21.3.8",
+    "chrome-aws-lambda": "^10.1.0"
   }
 }

@@ -1,10 +1,12 @@
-
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const fs = require('fs');
+const chrome = require('chrome-aws-lambda');
 
 (async () => {
   const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: chrome.args,
+    executablePath: await chrome.executablePath,
+    headless: true,
   });
 
   const page = await browser.newPage();
@@ -19,7 +21,6 @@ const puppeteer = require('puppeteer');
     return Array.from(elements).map(el => el.innerText.trim());
   });
 
-  const fs = require('fs');
   fs.writeFileSync('matchs.json', JSON.stringify(matchs, null, 2));
 
   await browser.close();
