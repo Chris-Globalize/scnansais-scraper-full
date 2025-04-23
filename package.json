@@ -1,7 +1,8 @@
+
 {
   "name": "scnansais-scraper",
   "version": "1.0.0",
-  "description": "Scraper FFF for SC Nansais",
+  "description": "Scraper FFF for SC Nansais using puppeteer-core and chrome-aws-lambda",
   "main": "scrape.js",
   "scripts": {
     "start": "node scrape.js"

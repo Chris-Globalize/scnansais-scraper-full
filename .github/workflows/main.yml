@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Puppeteer
-        run: npm install puppeteer
+      - name: Install Puppeteer core and chrome-aws-lambda
+        run: npm install
 
       - name: Run scraper
         run: node scrape.js
