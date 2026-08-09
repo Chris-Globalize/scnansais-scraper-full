@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 
 const CLUB_URL = process.env.FFF_CLUB_URL
-  || 'https://var.fff.fr/recherche-clubs/?subtab=agenda&tab=resultats&scl=172132';
+  || 'https://var.fff.fr/recherche-clubs?subtab=agenda&tab=resultats&scl=172132';
 const OUTPUT_FILE = 'matchs.json';
 
 function cleanText(value) {
@@ -11,10 +11,7 @@ function cleanText(value) {
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({
-    locale: 'fr-FR',
-    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36',
-  });
+  const page = await browser.newPage({ locale: 'fr-FR' });
 
   try {
     const response = await page.goto(CLUB_URL, {
