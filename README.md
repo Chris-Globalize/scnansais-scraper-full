@@ -1,10 +1,11 @@
 # Scraper des matchs du SC Nansais — multi-runner
 
-Version 1.2.0. Chaque lundi, GitHub essaie Ubuntu, puis macOS si Ubuntu échoue,
+Version 1.2.1. Chaque lundi, GitHub essaie Ubuntu, puis macOS si Ubuntu échoue,
 puis Windows si les deux premiers environnements échouent. Le premier résultat
 contenant au moins un match est envoyé vers `/www/Scrap-fff/matchs.json`.
 
-La semaine à consulter est ajoutée automatiquement à l'adresse FFF dans le
+Le scraper teste automatiquement les six prochaines semaines et s'arrête sur
+la première qui contient des rencontres. Les dates sont calculées dans le
 fuseau `Europe/Paris`. Une réponse HTTP 403, une page FFF indisponible ou un
 tableau vide ne remplacent jamais les anciennes données du site.
 
