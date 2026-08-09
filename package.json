@@ -1,6 +1,6 @@
 {
   "name": "scnansais-scraper",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Récupération automatisée des matchs FFF du SC Nansais",
   "main": "scrape.js",

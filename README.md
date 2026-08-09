@@ -1,8 +1,12 @@
-# Scraper des matchs du SC Nansais
+# Scraper des matchs du SC Nansais — multi-runner
 
-Ce dépôt récupère toutes les six heures les rencontres publiées sur la fiche FFF
-du SC Nansais (`scl=172132`) et envoie uniquement `matchs.json` vers
-`/www/Scrap-fff/`.
+Version 1.2.0. Chaque lundi, GitHub essaie Ubuntu, puis macOS si Ubuntu échoue,
+puis Windows si les deux premiers environnements échouent. Le premier résultat
+contenant au moins un match est envoyé vers `/www/Scrap-fff/matchs.json`.
+
+La semaine à consulter est ajoutée automatiquement à l'adresse FFF dans le
+fuseau `Europe/Paris`. Une réponse HTTP 403, une page FFF indisponible ou un
+tableau vide ne remplacent jamais les anciennes données du site.
 
 ## Secrets GitHub nécessaires
 
@@ -14,6 +18,6 @@ du SC Nansais (`scl=172132`) et envoie uniquement `matchs.json` vers
 
 Dans **Actions → Scrape and Upload Matchs → Run workflow**.
 
-L'absence de rencontres n'est pas une erreur : le fichier contient alors `[]`.
-Si la FFF bloque la page ou renvoie une erreur, le FTP n'est pas exécuté et un
-artefact `fff-scrape-diagnostic` est conservé pendant sept jours.
+Si les trois environnements échouent, le FTP n'est pas exécuté. Des artefacts
+`diagnostic-ubuntu`, `diagnostic-macos` et `diagnostic-windows` sont conservés
+pendant sept jours pour identifier le comportement de la FFF.
