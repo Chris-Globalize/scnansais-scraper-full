@@ -1,8 +1,8 @@
-name: Scrape and Upload Matchs
+name: Scrape and Upload Matchs (multi-runner)
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '15 0 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -13,35 +13,154 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  scrape-and-upload:
+  scrape-ubuntu:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
+    timeout-minutes: 12
+    outputs:
+      success: ${{ steps.validate.outputs.success }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
           package-manager-cache: false
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Run scraper
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - id: scrape
+        continue-on-error: true
         run: node scrape.js
-
-      - name: Prepare FTP payload
+      - id: validate
+        if: always()
+        shell: bash
         run: |
-          mkdir -p deploy
-          cp matchs.json deploy/matchs.json
+          if [ "${{ steps.scrape.outcome }}" = "success" ] && node -e "const f=require('./matchs.json'); if(!Array.isArray(f)||f.length<1) process.exit(1)"; then
+            echo "success=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "success=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.validate.outputs.success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matchs-ubuntu
+          path: matchs.json
+          retention-days: 1
+      - if: steps.validate.outputs.success != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-ubuntu
+          path: |
+            scrape-debug.html
+            scrape-debug.png
+          if-no-files-found: ignore
+          retention-days: 7
 
+  scrape-macos:
+    needs: scrape-ubuntu
+    if: always() && needs.scrape-ubuntu.outputs.success != 'true'
+    runs-on: macos-latest
+    timeout-minutes: 15
+    outputs:
+      success: ${{ steps.validate.outputs.success }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          package-manager-cache: false
+      - run: npm ci
+      - run: npx playwright install chromium
+      - id: scrape
+        continue-on-error: true
+        run: node scrape.js
+      - id: validate
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.scrape.outcome }}" = "success" ] && node -e "const f=require('./matchs.json'); if(!Array.isArray(f)||f.length<1) process.exit(1)"; then
+            echo "success=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "success=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.validate.outputs.success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matchs-macos
+          path: matchs.json
+          retention-days: 1
+      - if: steps.validate.outputs.success != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-macos
+          path: |
+            scrape-debug.html
+            scrape-debug.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+  scrape-windows:
+    needs: [scrape-ubuntu, scrape-macos]
+    if: always() && needs.scrape-ubuntu.outputs.success != 'true' && needs.scrape-macos.outputs.success != 'true'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    outputs:
+      success: ${{ steps.validate.outputs.success }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          package-manager-cache: false
+      - run: npm ci
+      - run: npx playwright install chromium
+      - id: scrape
+        continue-on-error: true
+        run: node scrape.js
+      - id: validate
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.scrape.outcome }}" = "success" ] && node -e "const f=require('./matchs.json'); if(!Array.isArray(f)||f.length<1) process.exit(1)"; then
+            echo "success=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "success=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.validate.outputs.success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matchs-windows
+          path: matchs.json
+          retention-days: 1
+      - if: steps.validate.outputs.success != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-windows
+          path: |
+            scrape-debug.html
+            scrape-debug.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+  deploy:
+    needs: [scrape-ubuntu, scrape-macos, scrape-windows]
+    if: always() && (needs.scrape-ubuntu.outputs.success == 'true' || needs.scrape-macos.outputs.success == 'true' || needs.scrape-windows.outputs.success == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: matchs-*
+          path: recovered
+      - name: Prepare validated FTP payload
+        shell: bash
+        run: |
+          MATCH_FILE="$(find recovered -type f -name matchs.json -print -quit)"
+          test -n "$MATCH_FILE"
+          node -e "const f=require('./' + process.argv[1]); if(!Array.isArray(f)||f.length<1) process.exit(1)" "$MATCH_FILE"
+          mkdir -p deploy
+          cp "$MATCH_FILE" deploy/matchs.json
       - name: Upload matchs.json to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -54,13 +173,13 @@ jobs:
           server-dir: '/www/Scrap-fff/'
           dangerous-clean-slate: false
 
-      - name: Upload diagnostic when scraping fails
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: fff-scrape-diagnostic
-          path: |
-            scrape-debug.html
-            scrape-debug.png
-          if-no-files-found: ignore
-          retention-days: 7
+  failure-report:
+    needs: [scrape-ubuntu, scrape-macos, scrape-windows]
+    if: always() && needs.scrape-ubuntu.outputs.success != 'true' && needs.scrape-macos.outputs.success != 'true' && needs.scrape-windows.outputs.success != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aucun environnement n'a récupéré de données valides
+        run: |
+          echo "La FFF a refusé Ubuntu, macOS et Windows, ou aucun match exploitable n'a été publié."
+          echo "Le fichier présent sur le site a été conservé."
+          exit 1
